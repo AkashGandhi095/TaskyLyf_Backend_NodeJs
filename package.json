@@ -1,0 +1,16 @@
+{
+  "name": "taskyleaf",
+  "version": "1.0.0",
+  "description": "An app backend to store app task.",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "start:prod": "$Env:NODE_ENV='production';nodemon server.js"
+  },
+  "author": "AkashGandhi",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.17.2"
+  }
+}
