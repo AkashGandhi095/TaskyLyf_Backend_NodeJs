@@ -1,42 +1,12 @@
-
 const randomUUID  = require('crypto')
 const readWriteData = require('./util/readWriteFile.js')
+const UserAuthData = require('./model/UserAuthData.js')
+const TaskDataModel = require('./model/TaskDataModel.js')
 const express = require('express')
 const app = express()
 
 // response body middleware
 app.use(express.json())
-
-
-//user auth data model class
-class UserAuthData {
-    constructor(userName , password , userId) {
-        this.userName = userName
-        this.password = password
-        this.userId = userId
-    }
-
-    printUserDetails() {
-        console.log(this.userName , this.password , this.userId)
-    }
-}
-
-// task model
-class TaskDataModel {
-
-    constructor(taskId ,userId , tittle , createdTime , reminderTime , isCompleted) {
-        this.taskId = taskId
-        this.userId = userId
-        this.tittle = tittle
-        this.createdTime = createdTime 
-        this.reminderTime = reminderTime 
-        this.isCompleted = isCompleted
-    }
-
-    printTaskDetails() {
-        console.log(this.userName , this.createdTime , this.reminderTime , this.isCompleted)
-    }
-}
 
 // api routes
 
@@ -49,7 +19,7 @@ app.post('/user' , async (req , res) => {
     const reqBody = req.body
     const userData = await readWriteData.readUsersData();
     console.log(userData.length);
-    const newUser = new UserAuthData(reqBody.userName , reqBody.password , randomUUID())
+    const newUser = new UserAuthData(reqBody.userName , reqBody.password , randomUUID.randomUUID())
     const findUser = userData.find(it => it.userName === newUser.userName)
     if(findUser) {
         console.log("user already exists")
