@@ -1,38 +1,11 @@
 
 const randomUUID  = require('crypto')
-const fileSystem = require('fs')
 const readWriteData = require('./util/readWriteFile.js')
 const express = require('express')
 const app = express()
 
 // response body middleware
 app.use(express.json())
-
-
-const fsPro = fileSystem.promises
-
-class ReadWriteData {
-   
-    static async readUsersData() {
-        const fileData = await fsPro.readFile(`./data/users.json` , 'utf-8') 
-        const usersDataToJson = JSON.parse(fileData)
-        return usersDataToJson
-    } 
-
-    static async writeUsersData(data) {
-        const dataToString = JSON.stringify(data)
-        return fsPro.writeFile('./data/users.json' , dataToString , 'utf-8')
-    }
-
-    static async readTasksData() {
-        const taskData = await fsPro.readFile('./data/task.json')
-        return JSON.parse(taskData)
-    }
-    static async writeTaskData(data) {
-        const taskToString = JSON.stringify(data)
-        return fsPro.writeFile('./data/task.json' , taskToString)
-    }
-}
 
 
 //user auth data model class
@@ -74,7 +47,7 @@ app.get('/' , (req , res) => res.send(`<h1> Welcome to taskyleaf App </h1> \n
 
 app.post('/user' , async (req , res) => {
     const reqBody = req.body
-    const userData = await ReadWriteData.readUsersData();
+    const userData = await readWriteData.readUsersData();
     console.log(userData.length);
     const newUser = new UserAuthData(reqBody.userName , reqBody.password , randomUUID())
     const findUser = userData.find(it => it.userName === newUser.userName)
@@ -88,7 +61,7 @@ app.post('/user' , async (req , res) => {
     } else {
         console.log("user not exists , add to db")
         userData.push(newUser)
-        await ReadWriteData.writeUsersData(userData)
+        await readWriteData.writeUsersData(userData)
     }
     res.json({
         message : "Account Registered Successfully!!",
@@ -101,7 +74,7 @@ app.post('/user' , async (req , res) => {
 app.get('/task/:userId' , async (req , res) => {
     const userId = req.params.userId
     console.log(userId)
-    const allTasks = await ReadWriteData.readTasksData()
+    const allTasks = await readWriteData.readTasksData()
     const filterTaskByUserId = allTasks.filter(it => it.userId === userId)
     if(filterTaskByUserId.length === 0) {
         return res.json({
@@ -119,13 +92,13 @@ app.get('/task/:userId' , async (req , res) => {
 
 // add new task
 app.post('/task' , async (req , res) => {
-    const readTaskFromFile = await ReadWriteData.readTasksData()
+    const readTaskFromFile = await readWriteData.readTasksData()
     let taskId = readTaskFromFile.length+1
     const taskReqBody = req.body
     const task = new TaskDataModel(taskId ,taskReqBody.userId , taskReqBody.tittle , taskReqBody.createdTime , taskReqBody.reminderTime , taskReqBody.isCompleted)
     readTaskFromFile.push(task)
     console.log(readTaskFromFile)
-    await ReadWriteData.writeTaskData(readTaskFromFile)
+    await readWriteData.writeTaskData(readTaskFromFile)
     res.json({
         message : "Task created successfully" ,
         status : 1 ,
@@ -135,7 +108,7 @@ app.post('/task' , async (req , res) => {
 
 // update task by user ID and task ID
 app.patch('/task/:userId/:taskId' , async(req , res) => {
-    const tasksList = await ReadWriteData.readTasksData()
+    const tasksList = await readWriteData.readTasksData()
     const taskIndexNo = findIndexById(req.params.userId , req.params.taskId , tasksList)
     console.log(taskIndexNo , req.params.userId , req.params.taskId)
     if(taskIndexNo === -1) {
@@ -151,7 +124,7 @@ app.patch('/task/:userId/:taskId' , async(req , res) => {
     const task = tasksList[taskIndexNo]
     console.log(`task : ${task}`)
     task.isCompleted = req.body.isCompleted
-    await ReadWriteData.writeTaskData(tasksList)
+    await readWriteData.writeTaskData(tasksList)
     res.json({
         message : "Task updated successfully!!" ,
         status : 1 ,
@@ -162,7 +135,7 @@ app.patch('/task/:userId/:taskId' , async(req , res) => {
 
 // delete task by user ID and task ID
 app.delete('/task/:userId/:taskId' , async (req , res) => {
-    const tasksList = await ReadWriteData.readTasksData()
+    const tasksList = await readWriteData.readTasksData()
     const taskIndexNo = findIndexById(req.params.userId , req.params.taskId , tasksList)
     if(taskIndexNo === -1) {
         return res.json({
@@ -173,7 +146,7 @@ app.delete('/task/:userId/:taskId' , async (req , res) => {
     }
 
     const deletedItem = tasksList.splice(taskIndexNo , 1)
-    await ReadWriteData.writeTaskData(tasksList)
+    await readWriteData.writeTaskData(tasksList)
     console.log(deletedItem)
     res.json({
         message : "task deleted successfully!!" , 
