@@ -1,7 +1,5 @@
-const randomUUID  = require('crypto')
-const readWriteData = require('./util/readWriteFile.js')
-const UserAuthData = require('./model/UserAuthData.js')
-const TaskDataModel = require('./model/TaskDataModel.js')
+const userRouter = require('./router/userRouter')
+const taskRouter = require('./router/taskRouter')
 const express = require('express')
 const app = express()
 
@@ -12,120 +10,11 @@ app.use(express.json())
 
 app.get('/' , (req , res) => res.send(`<h1> Welcome to taskyleaf App </h1> \n 
 <img src="https://media1.giphy.com/media/uMUcWg5fIQhWM/giphy.gif?cid=ecf05e470jp41xxobququlsbjxjuk7wpdhcgxq7ujvde3az6&rid=giphy.gif&ct=g" alt="description of gif" /> `))
+ 
+// user Router
+app.use('/user' , userRouter)
 
-    // register user
-
-app.post('/user' , async (req , res) => {
-    const reqBody = req.body
-    const userData = await readWriteData.readUsersData();
-    console.log(userData.length);
-    const newUser = new UserAuthData(reqBody.userName , reqBody.password , randomUUID.randomUUID())
-    const findUser = userData.find(it => it.userName === newUser.userName)
-    if(findUser) {
-        console.log("user already exists")
-        return res.json({
-            message : "UserName already exists , try with other user name",
-            status : 0,
-            data : {},
-        })
-    } else {
-        console.log("user not exists , add to db")
-        userData.push(newUser)
-        await readWriteData.writeUsersData(userData)
-    }
-    res.json({
-        message : "Account Registered Successfully!!",
-        status : 1 , 
-        data : newUser ,
-    })
-})
-
-// get task by userID
-app.get('/task/:userId' , async (req , res) => {
-    const userId = req.params.userId
-    console.log(userId)
-    const allTasks = await readWriteData.readTasksData()
-    const filterTaskByUserId = allTasks.filter(it => it.userId === userId)
-    if(filterTaskByUserId.length === 0) {
-        return res.json({
-            message : "tasks not found..",
-            status : 0,
-            data : []
-        })
-    }
-    res.json({
-        message : `total tasks : ${filterTaskByUserId.length}`,
-        status : 1,
-        data : filterTaskByUserId
-    })
-})
-
-// add new task
-app.post('/task' , async (req , res) => {
-    const readTaskFromFile = await readWriteData.readTasksData()
-    let taskId = readTaskFromFile.length+1
-    const taskReqBody = req.body
-    const task = new TaskDataModel(taskId ,taskReqBody.userId , taskReqBody.tittle , taskReqBody.createdTime , taskReqBody.reminderTime , taskReqBody.isCompleted)
-    readTaskFromFile.push(task)
-    console.log(readTaskFromFile)
-    await readWriteData.writeTaskData(readTaskFromFile)
-    res.json({
-        message : "Task created successfully" ,
-        status : 1 ,
-        data : task
-    })
-})
-
-// update task by user ID and task ID
-app.patch('/task/:userId/:taskId' , async(req , res) => {
-    const tasksList = await readWriteData.readTasksData()
-    const taskIndexNo = findIndexById(req.params.userId , req.params.taskId , tasksList)
-    console.log(taskIndexNo , req.params.userId , req.params.taskId)
-    if(taskIndexNo === -1) {
-        console.log('invalid userId or no task found for this selected taskId')
-        return res.json({
-            message : `invalid userId or no task found for this selected taskId`,
-            status : 0 ,
-            data : {}
-        })
-    }
-
-    console.log(`taskIndex : ${taskIndexNo}`)
-    const task = tasksList[taskIndexNo]
-    console.log(`task : ${task}`)
-    task.isCompleted = req.body.isCompleted
-    await readWriteData.writeTaskData(tasksList)
-    res.json({
-        message : "Task updated successfully!!" ,
-        status : 1 ,
-        data : task
-    })
-    
-})
-
-// delete task by user ID and task ID
-app.delete('/task/:userId/:taskId' , async (req , res) => {
-    const tasksList = await readWriteData.readTasksData()
-    const taskIndexNo = findIndexById(req.params.userId , req.params.taskId , tasksList)
-    if(taskIndexNo === -1) {
-        return res.json({
-            message : "invalid user id or task id" ,
-            status : 0 ,
-            data : {}
-        })
-    }
-
-    const deletedItem = tasksList.splice(taskIndexNo , 1)
-    await readWriteData.writeTaskData(tasksList)
-    console.log(deletedItem)
-    res.json({
-        message : "task deleted successfully!!" , 
-        status : 1 , 
-        data : deletedItem[0]
-    })
-})
-
-const findIndexById = (userId , taskId , dataArray) => dataArray.findIndex(task => 
-    task.userId === userId && task.taskId === parseInt(taskId))
+// task Router
+app.use('/task' , taskRouter)
 
 module.exports = app    
