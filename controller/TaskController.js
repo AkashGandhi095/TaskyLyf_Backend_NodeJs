@@ -2,6 +2,19 @@ const readWriteData = require('./../util/readWriteFile.js')
 const TaskDataModel = require('./../model/TaskDataModel.js')
 
 
+exports.checkTaskBody = (req , res , next) => {
+    const reqBody = req.body
+    if(!reqBody.userId || !reqBody.tittle) {
+        const msg = !reqBody.userId ? "userId required!!" : "proper title required for task!!"
+        console.log(msg)
+        return res.json({
+            message : msg ,
+            status : 400
+        })
+    }
+    next()
+}
+
 // get task by userID
 exports.getTaskById = async (req , res) => {
     const userId = req.params.userId

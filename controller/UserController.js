@@ -30,3 +30,17 @@ exports.registerUser = async (req , res) => {
 
 }
 
+exports.checkUserReqBody = (req , res , next) => {
+    const reqBody = req.body
+    console.log(reqBody)
+    if(!reqBody.userName || !reqBody.password) {
+        const msg = !reqBody.userName ? "User name required for registeration!!" : "Password required for registeration!!"
+        console.log(msg)
+        return res.json({
+            message : msg , 
+            status : 400
+        })
+    }
+
+    next()
+}

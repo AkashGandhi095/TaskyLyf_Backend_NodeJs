@@ -5,7 +5,7 @@ const router = express.Router()
 // check this and understand this middleware
 router
 .route('/')
-.post(userController.registerUser)
+.post( userController.checkUserReqBody, userController.registerUser)
 
 module.exports = router
 
